@@ -3,13 +3,13 @@ When I was asked to take on this challenge, I never realised that what I was ask
 
 This project has produced 3 Design Change Requests for Intune, 2 around reporting, and 1 to allow the setting for compliance checking on workstations that if they do not have a bitlocker recovery key, they cannot be compliant with the policy, if the encryption policy is set to have the recovery key escrowed to AzureAD.
 
-I am sharing with you the working PowerShell code that allowed us to uncover some flaws within the Intune around reporting. I have more than 40 non-working scripts that I created (and abandoned).
+I am sharing with you the working PowerShell code that allowed us to uncover some flaws within the Intune around reporting. I have more than 40 non-working scripts that I created (and abandoned), I will not share these though.
 
 ## What is needed for this script to function?
 
 You will need a Service Principal in AzureAD with sufficient rights. I have a Service Principal that I use for multiple processes. I suggest following the guide from <https://msendpointmgr.com/2021/01/18/get-intune-managed-devices-without-an-escrowed-bitlocker-recovery-key-using-powershell/>. My permissions are set as in the image below. Please do not copy my permissions, this Service Principal is used for numerous tasks. I really should correct this, unfortunately, time has not been on my side, so I just work with what work for now. 
 
-![](https://github.com/christopherbaxter/StaleComputerAccounts/blob/main/Images/ServicePrincipal%20-%20API%20Permissions.jpg)
+![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/ServicePrincipal%20-%20API%20Permissions.jpg)
 
 I also elevate my AzureAD account to 'Intune Administrator', 'Cloud Device Administrator' and 'Security Reader'. These permissions also feel more than needed. Understand that I work in a very large environment, that is very fast paced, so I elevate these as I need them for other tasks as well.
 
@@ -22,19 +22,27 @@ JoinModule\
 MSAL.PS\
 PSReadline (May not be needed, not tested without this)
 
-Ultimately, I built a VM on-prem in one of our data centres to run this script, including others. My machine has 4 procs and 16Gb RAM, the reason for an on-prem VM is because most of our workforce is working from home (me included), and running this script is a little slow through the VPN. Our ExpressRoute also makes this data collection significantly more efficient. In a small environment, you will not need this.
+Ultimately, I built a VM on-prem in one of our data centres to run this script, including others. My machine has 4 procs and 16Gb RAM, the reason for an on-prem VM is because most of our workforce is working from home (me included), and running this script is a little slow through the VPN. Our ExpressRoute also makes this data collection significantly more efficient. In a small environment, you will not need this VM.
 
 # Disclaimer
 
 Ok, so my code may not be very pretty, or efficient in terms of coding. I have only been scripting with PowerShell since September 2020, have had very little (if any), formal PowerShell training and have no previous scripting experience to speak of, apart from the '1 liners' that AD engineers normally create, so please, go easy. I have found that I LOVE PowerShell and finding strange solutions like this have become a passion for me.
 
+My company has a 'Mission Critical' contract with Microsoft for AD and also an E5 licence. We also make extensive use of Azure Cloud, AzureAD, Intune and pretty much whatever Microsoft has to offer from Azure. 
+
+I logged a request with Microsoft to assist us with this process (a few in fact, but the E5 and Mission Critical contracts unlocked some 'Power-Ups' for us, allowing some pretty cool access to some pretty cool specialists - I have asked for permission to share their details and thank them here).
+
+The code here in the scripts may not all be my own, and I will thank those whose code I have used, when I explain it below, but the processes and the logic is my own. 
+
 ## Christopher, enough ramble, How does this thing work?
 
 Before we start, I have expected 'runtimes' for each section. This is for my environment, and will not be accurate for your environment. Use the Measure-Command cmdlet to measure for your specific environment. I added this in because the script could run for hours and appear to be doing nothing.
 
+Also, You will notice a LOT of shared code between my scripts. The reason for this is because a lot of the code is either the same, or similar. The real magic is in the logic in the code after the data extractions occur.
+
 ### Parameters
 
-The first section is where we supply the TenantID (Of the AzureAD tenant) and the ClientID of the Service Principal you have created. If you populate these (hard code), then the script will not ask for these and will immediately go to the Authentication process.
+The first section is where we supply the TenantID (of the AzureAD tenant) and the ClientID of the Service Principal you have created. If you populate these (hard code), then the script will not ask for these and will immediately go to the Authentication process.
 
 ![](https://github.com/christopherbaxter/StaleComputerAccounts/blob/main/Images/Parameters.jpg)
 
