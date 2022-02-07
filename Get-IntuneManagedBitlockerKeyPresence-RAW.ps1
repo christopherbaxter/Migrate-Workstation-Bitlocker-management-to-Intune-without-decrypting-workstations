@@ -45,12 +45,12 @@
 [CmdletBinding(SupportsShouldProcess = $TRUE)]
 param(
     #PLEASE make sure you have specified your details below, else edit this and use the switches\variables in command line.
-    [parameter(Mandatory = $False, HelpMessage = "Specify the Azure AD tenant ID.")]
+    [parameter(Mandatory = $TRUE, HelpMessage = "Specify the Azure AD tenant ID.")]
     [ValidateNotNullOrEmpty()]
     #[string]$TenantID = "", # Populate this with your TenantID, this will then allow the script to run without asking for the details
     [string]$TenantID,
 
-    [parameter(Mandatory = $False, HelpMessage = "Specify the service principal, also known as app registration, Client ID (also known as Application ID).")]
+    [parameter(Mandatory = $TRUE, HelpMessage = "Specify the service principal, also known as app registration, Client ID (also known as Application ID).")]
     [ValidateNotNullOrEmpty()]
     #[string]$ClientID = "" # Populate this with your ClientID\ApplicationID of your Service Principal, this will then allow the script to run without asking for the details
     [string]$ClientID
@@ -201,7 +201,7 @@ Process {
                         "Headers"     = $Headers
                         "Method"      = $PSCmdlet.ParameterSetName
                         "ErrorAction" = "Stop"
-                        "Verbose"     = $True
+                        "Verbose"     = $VerbosePreference
                     }
     
                     switch ($PSCmdlet.ParameterSetName) {
@@ -427,14 +427,6 @@ Process {
     #############################################################################################################################################
 
     Clear-ResourceEnvironment
-
-    if(-not($TenantID)){
-        [string]$TenantID = Read-Host -Prompt "Enter your TenantID"
-    }
-
-    if(-not($ClientID)){
-        [string]$ClientID = Read-Host -Prompt "Enter ClientID of your Service Principal"
-    }
 
     if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
     Try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
