@@ -13,10 +13,7 @@
     # Retrieve a list of Intune managed devices that have a BitLocker recovery key associated on the Azure AD device object:
     .\Get-IntuneManagedDeviceBitLockerKeyPresence.ps1 -TenantID "<tenant_id>" -ClientID "<client_id>"
     # Retrieve a list of Intune managed devices that doesn't have a BitLocker recovery key associated on the Azure AD device object:
-    .\Get-IntuneManagedDeviceBitLockerKeyPresence.ps1 -TenantID "<tenant_id>" -ClientID "<client_id>" -State "NotPresent"
-    
-    # No need for all that. Just edit the variables and go from there.
-    .\Get-IntuneManagedDeviceBitLockerKeyPresence.ps1 -Verbose
+    .\Get-IntuneManagedDeviceBitLockerKeyPresence.ps1 -TenantID "<tenant_id>" -ClientID "<client_id>"
 .NOTES
     FileName:    Get-IntuneManagedDeviceBitLockerKeyPresence.ps1
     Author:      Nickolaj Andersen
@@ -39,26 +36,32 @@
     2.0.0 - (2021-01-30) Script tweaked, expanded, manipulated, debugged, scaled and skookumized to be able to handle massive organisations by Christopher Baxter.
     3.0.0 - (2021-05-07) Script completed. This now functions. Christopher Baxter.
     4.0.0 - (2021-07-01) Script reworked and optimised. Christopher Baxter.
-    4.0.1 - Many performance improvements realised. This script will extract the data it needs, then export the data to a file, clear array variable and clear the memory.
+    4.0.1 - (Yup, I lost track) Many performance improvements realised. This script will extract the data it needs, then export the data to a file, clear array variable and clear the memory.
             This was done in an effort to limit the amount of resources needed to run the script. Depending on the size of the environment, without this, RAM utilisation can easily climb beyond what is available. The script was written on a machine with 32Gb RAM, with no other tasks being performed.
             The script suffered constant crashes and severe performance degradation prior to this process being implemented. Your Mileage may vary.
 
 #>
-#Requires -Modules "MSAL.PS,ActiveDirectory,AzureAD,ImportExcel,JoinModule,PSReadline"
+#Requires -Modules "MSAL.PS","ActiveDirectory","AzureAD","ImportExcel","JoinModule","PSReadline"
 [CmdletBinding(SupportsShouldProcess = $TRUE)]
 param(
     #PLEASE make sure you have specified your details below, else edit this and use the switches\variables in command line.
     [parameter(Mandatory = $False, HelpMessage = "Specify the Azure AD tenant ID.")]
     [ValidateNotNullOrEmpty()]
-    [string]$TenantID = "", # Populate this with your TenantID, this will then allow the script to run without asking for the details
+    #[string]$TenantID = "", # Populate this with your TenantID, this will then allow the script to run without asking for the details
+    [string]$TenantID,
 
     [parameter(Mandatory = $False, HelpMessage = "Specify the service principal, also known as app registration, Client ID (also known as Application ID).")]
     [ValidateNotNullOrEmpty()]
-    [string]$ClientID = "" # Populate this with your ClientID\ApplicationID of your Service Principal, this will then allow the script to run without asking for the details
+    #[string]$ClientID = "" # Populate this with your ClientID\ApplicationID of your Service Principal, this will then allow the script to run without asking for the details
+    [string]$ClientID
 )
 Begin {}
 Process {
+    
+    #############################################################################################################################################
     # Functions
+    #############################################################################################################################################
+    
     function Invoke-MSGraphOperation {
         <#
         .SYNOPSIS
@@ -395,7 +398,10 @@ Process {
     
     }
     
-    # Set Variables here
+    #############################################################################################################################################
+    # Variables
+    #############################################################################################################################################
+    
     $Script:PIMExpired = $null
     $BitlockerKeyEscrowReport = $null
     $FileDate = Get-Date -Format 'yyyy_MM_dd'
@@ -416,7 +422,10 @@ Process {
     [System.Net.WebRequest]::DefaultWebProxy = [System.Net.WebRequest]::GetSystemWebProxy()
     [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
 
-    # Start of the actual workload
+    #############################################################################################################################################
+    # Get Authentication Token and Authentication Header
+    #############################################################################################################################################
+
     Clear-ResourceEnvironment
 
     if(-not($TenantID)){
@@ -511,7 +520,10 @@ Process {
     Remove-Variable -Name RawBitLockerRecoveryKeys -Force
     Clear-ResourceEnvironment
 
-    #Deduplicating the data and selecting the most recent data.
+    #############################################################################################################################################
+    # Deduplicate recovery key data and selecting only the latest object
+    #############################################################################################################################################
+    
     $DDRawOSBitlockerKey = [System.Collections.ArrayList]@($RawOSBitlockerKey | Sort-Object deviceId, createdDateTime -Descending | Group-Object -Property deviceId | Select-Object @{Name = 'GroupedList'; Expression = { $_.group | Select-Object -First 1 } } | Select-Object -ExpandProperty GroupedList) # Processing Time = 5 Minutes
 
     Remove-Variable -Name RawOSBitlockerKey -Force
@@ -746,7 +758,7 @@ Process {
     Clear-ResourceEnvironment
 
     Write-Host "Processing SCCM Dell DDPE Data into Array - Expected Runtime is 20 Seconds - Start Time: $(Get-Date -Format "yyyy/MM/dd HH:mm")" -ForegroundColor Green
-    $DDPEData = @( foreach ($file in $DDPEFiles) { Import-Excel -Path "$($SCCMInputFiles)\$($file.Name)" })
+    $DDPEData = @( foreach ($file in $DDPEFiles) { Import-Excel -Path "$($SCCMInputFiles)\$($file.Name)" -StartRow 5 -StartColumn 2 })
     $DDPEProcData = [System.Collections.ArrayList]@( $DDPEData | Select-Object @{Name = "OPDeviceName"; Expression = { ($_."Computer Name").ToString() } }, @{Name = "ApplicationName"; Expression = { $_."Application Name" } }, @{Name = "ApplicationVersion"; Expression = { $_."App Version" } } | Sort-Object OPDeviceName )
     Write-Host "SCCM Dell DDPE Data into Array Processing Completed - Completion Time: $(Get-Date -Format "yyyy/MM/dd HH:mm")" -ForegroundColor Green
     Remove-Variable -Name DDPEData -Force

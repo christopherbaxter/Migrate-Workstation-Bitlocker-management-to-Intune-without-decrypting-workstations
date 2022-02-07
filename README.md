@@ -7,7 +7,7 @@ I am sharing with you the working PowerShell code that allowed us to uncover som
 
 ## What is needed for this script to function?
 
-You will need a Service Principal in AzureAD with sufficient rights. I have a Service Principal that I use for multiple processes. I suggest following the guide from <https://msendpointmgr.com/2021/01/18/get-intune-managed-devices-without-an-escrowed-bitlocker-recovery-key-using-powershell/>. My permissions are set as in the image below. Please do not copy my permissions, this Service Principal is used for numerous tasks. I really should correct this, unfortunately, time has not been on my side, so I just work with what work for now. 
+You will need a Service Principal in AzureAD with sufficient rights. I have a Service Principal that I use for multiple processes. I suggest following the guide from <https://msendpointmgr.com/2021/01/18/get-intune-managed-devices-without-an-escrowed-bitlocker-recovery-key-using-powershell/>. My permissions are set as in the image below. Please do not copy my permissions, this Service Principal is used for numerous tasks. I really should correct this, unfortunately, time has not been on my side, so I just work with what work for now. The reporting script "Get-IntuneManagedBitlockerKeyPresence-RAW.ps1" was built from the script referenced in the guide above.
 
 ![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/ServicePrincipal%20-%20API%20Permissions.jpg)
 
@@ -32,13 +32,13 @@ My company has a 'Mission Critical' contract with Microsoft for AD and also an E
 
 I logged a request with Microsoft to assist us with this process (a few in fact, but the E5 and Mission Critical contracts unlocked some 'Power-Ups' for us, allowing some pretty cool access to some pretty cool specialists - I have asked for permission to share their details and thank them here).
 
-The code here in the scripts may not all be my own, and I will thank those whose code I have used, when I explain it below, but the processes and the logic is my own. 
+The code in the scripts may not all be my own, and I will thank those whose code I have used, when I explain it below, but the processes and the logic is my own.
 
 ## Christopher, enough ramble, How does this thing work?
 
 Before we start, I have expected 'runtimes' for each section. This is for my environment, and will not be accurate for your environment. Use the Measure-Command cmdlet to measure for your specific environment. I added this in because the script could run for hours and appear to be doing nothing.
 
-Also, You will notice a LOT of shared code between my scripts. The reason for this is because a lot of the code is either the same, or similar. The real magic is in the logic in the code after the data extractions occur.
+Also, You will notice a LOT of shared code between my scripts. The reason for this is because a lot of the code is either the same, or similar. The real magic is in the logic in the code after the data extractions occur. Each script has been written to run pretty much separate from the others, as long as the 'input' files exist. The scripts should run.
 
 ### Parameters
 
