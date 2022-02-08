@@ -172,8 +172,14 @@ Process {
                     # Attempt to retrieve a refresh token when token expiration count is less than or equal to 10
                     if ($TokenExpireMins -le 10) {
                         #Write-Verbose -Message "Existing token found but has expired, requesting a new token"
-                        $AccessToken = Get-MsalToken -TenantId $Script:TenantID -ClientId $Script:ClientID -Silent -ForceRefresh
+                        #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
+                        try { $AccessToken = Get-MsalToken -TenantId $Script:TenantID -ClientId $Script:ClientID -ForceRefresh -Silent -ErrorAction Stop }
+                        catch { $AccessToken = Get-MsalToken -TenantId $Script:TenantID -ClientId $Script:ClientID -ErrorAction Stop }
+                        if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
                         $Headers = New-AuthenticationHeader -AccessToken $AccessToken
+
+                        #$AccessToken = Get-MsalToken -TenantId $Script:TenantID -ClientId $Script:ClientID -Silent -ForceRefresh
+                        #$Headers = New-AuthenticationHeader -AccessToken $AccessToken
                     }
     
                     # Construct table of default request parameters
@@ -253,7 +259,10 @@ Process {
                     elseif ($PSItem.Exception.Message -like "*Invalid JSON primitive*") {
                         $Runcount++
                         if ($Runcount -eq 5) {
-                            $AccessToken = Get-MsalToken -TenantId $Script:TenantID -ClientId $Script:ClientID -Silent -ForceRefresh
+                            if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
+                            try { $AccessToken = Get-MsalToken -TenantId $Script:TenantID -ClientId $Script:ClientID -ForceRefresh -Silent -ErrorAction Stop }
+                            catch { $AccessToken = Get-MsalToken -TenantId $Script:TenantID -ClientId $Script:ClientID -ErrorAction Stop }
+                            if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
                             $Headers = New-AuthenticationHeader -AccessToken $AccessToken
                         }
                         if ($Runcount -ge 10) {
@@ -399,7 +408,7 @@ Process {
     #############################################################################################################################################
 
     if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
-    Try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
+    try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
     catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop }
     if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
     $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
@@ -452,8 +461,14 @@ Process {
         $Runcount++
         if ($Runcount -ge 1000) {
 
-            $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop
+            #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
+            try { $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop }
+            catch { $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ErrorAction Stop }
+            if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
             $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
+
+            #$AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop
+            #$AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
             $Runcount = 0 
         }
         $GraphURI = "https://graph.microsoft.com/$($APIVersion)/$($Resource)/$($_)?`$select=id,deviceActionResults,aadRegistered,autopilotEnrolled"
@@ -470,7 +485,10 @@ Process {
             Invoke-RestMethod @RequestParams
         }
         catch {
-            $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop
+            #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
+            try { $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop }
+            catch { $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ErrorAction Stop }
+            if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
             $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
             Invoke-RestMethod @RequestParams
         }
@@ -484,8 +502,9 @@ Process {
     $Counter = 0
     $RawExtract = [System.Collections.ArrayList]@(Foreach ($i in $SplitDevicelist) {
             # Get authentication token
-            if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
-            $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop
+            #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
+            try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
+            catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop }
             if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
             $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
             $Counter++
@@ -544,10 +563,11 @@ Process {
     $Counter = 0
     $FailedRawExtract = [System.Collections.ArrayList]@(Foreach ($item in $FailedSplitList) {
             # Get authentication token
-            if ($AccessToken) {
-                Remove-Variable -Name AccessToken -Force
-            }
-            $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop
+            #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
+            try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
+            catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop }
+            if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
+            $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
 
             # Construct authentication header
             if ($AuthenticationHeader) {

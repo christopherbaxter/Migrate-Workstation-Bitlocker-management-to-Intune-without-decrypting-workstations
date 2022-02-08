@@ -442,8 +442,15 @@ Process {
         $Runcount++
         # This will refresh the authtoken and the authentication header after every 1000 'runs\cycles'
         if ($Runcount -ge 1000) {
-            $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop
+            #$AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ErrorAction Stop
+            #$AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
+
+            #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
+            try { $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop }
+            catch { $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ErrorAction Stop }
+            if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
             $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
+
             $Runcount = 0 
         }
         
@@ -468,7 +475,10 @@ Process {
             }
         }
         catch {
-            $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop
+            #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
+            try { $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop }
+            catch { $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ErrorAction Stop }
+            if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
             $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
             $RequestParams = @{
                 "Uri"         = $GraphURI
@@ -506,8 +516,9 @@ Process {
     $Counter = 0
     Foreach ($i in $SplitDevicelist) {
         # Get authentication token
-        if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
-        $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop
+        #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
+        try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
+        catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop }
         if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
         $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
         
@@ -553,8 +564,9 @@ Process {
     $FCounter = 0
     Foreach ($f in $FailedDevicelist) {
         # Get authentication token
-        if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
-        $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop
+        #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
+        Try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
+        catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop }
         if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
         $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
         $FCounter++
