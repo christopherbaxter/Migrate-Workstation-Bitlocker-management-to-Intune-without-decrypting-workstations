@@ -215,5 +215,5 @@ I will also document and upload the scripts I created in order to get workstatio
 
 There is much still to see here.
 
-Visitor Counter (Excuse the font, I have no idea what I'm doing)
-![Visitor Count](https://profile-counter.glitch.me/christopherbaxter/count.svg)
+Visitor Counter (Excuse the font, I have no idea what I'm doing)\
+![Visitor Count](https://profile-counter.glitch.me/Workstation-Bitlocker-management-using-Intune/count.svg)
