@@ -138,79 +138,9 @@ Both scripts are very similar, in that they both have the same structure, and co
 
 # Running "RotateBitlockerKeys-Parallel-RAW.ps1" script or "Get-DeviceActionData-KeyRotation-RAW.ps1" script. -> Come, SIDEBAR, lets see these scripts.
 
-Run it. Either provide a .csv with the IntuneDeviceIDs of the devices you want to target for rotation, or just run it against all the devices in Intune.
+Before you can run the script in it's entirety, you need to first run the 'RotateBitlockerKeys-Parallel-RAW.ps1' script. Detailed [here](https://github.com/christopherbaxter/Intune-BitlockerKeyRotation-Bulk).
 
-### The parameters, functions, auth token and auth header, and IntuneDeviceID extraction processes are the same in these scripts, in most cases.
-
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationRequest/01-ParamsandFunctions.jpg)
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationRequest/02-Variables.jpg)
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationRequest/03-GenerateAuthtokenandAuthHeader.jpg)
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationRequest/04-ExtractIntuneDeviceIDs.jpg)
-
-### Splitting the IntuneDeviceID array.
-
-Now things get interesting, splitting the array into multiple equal parts. This was done as I was having trouble with the tokens expiring while the script was running, even with this process being managed in the function called "Invoke-MSGraphOperation" in the script. 
-
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationRequest/05-SplitTheIntuneDeviceIDArray.jpg)
-
-### The Script block.
-
-The Script block in "RotateBitlockerKeys-Parallel-RAW.ps1" includes a reporting ability. This is in order to be able to get the failures and retry them again. I was struggling with failures, either due to the authentication token expiring, or timeouts. I created the process to retry the command again. Keep in mind that i am running 30 simultaneous threads, and it is probable that I am overloading something along the way, hence the numerous retries.
-
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationRequest/06-ScriptBlock-1.jpg)
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationRequest/07-ScriptBlock-2.jpg)
-
-The Script block in "Get-DeviceActionData-KeyRotation-RAW.ps1" is pretty simple. It is intended to simply send the Bitlocker key rotation command to Intune. 
-
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationResult/06-ScriptblockforParallelProcessing.jpg)
-
-### The Foreach Loop.
-
-This is the key to the ability to run the commands in parallel. I made use of a module called PoshRSJob. This allowed me to run simultaneous web requests.
-
-The foreach loop in "RotateBitlockerKeys-Parallel-RAW.ps1" is setup to collect the reporting data created in the relevant Script block.
-
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationRequest/08-ForeachLoop.jpg)
-
-The foreach loop in "Get-DeviceActionData-KeyRotation-RAW.ps1" is setup to collect the full output of the output from the relevant script block. This allows me to collect the failures
-
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationResult/07-ForeachLoop.jpg)
-
-### Extracting the failures for the retry process.
-
-The code in "RotateBitlockerKeys-Parallel-RAW.ps1" for extracting the failures, works by extracting the successful (and failed requests. This is not the same type of failure mode. This is an actual failure returned, so a successful request, with a failed result, not a failed request) rotation requests. These successful extractions are then 'blended' with the complete list of IntuneDeviceIDs, then extracting the devices without a 'successful\failed' rotation result, and creating an array with these device IDs. Then splitting the array again like above.
-
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationRequest/09-FailedRotationExtractionArrayCreationandSplit.jpg)
-
-The code in "Get-DeviceActionData-KeyRotation-RAW.ps1" will 'blend' the results with the complete list of device IDs (like above), then extract the list of devices without data in 'aadRegistered' or 'autopilotEnrolled' fields in the extract. These are found to be generally extraction failures.
-
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationResult/08-ProcesstheExtractandSelectFailed.jpg)
-
-This array of failed extractions is then split into smaller chucks, like above
-
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationResult/09-SplitFailedArray.jpg)
-
-### Retry the extract for the failures
-
-There is not much more to see here, only that I again run the extract using the PoshRSJob module.
-
-The code in "RotateBitlockerKeys-Parallel-RAW.ps1":
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationRequest/10-RetryFailures.jpg)
-
-The code in "Get-DeviceActionData-KeyRotation-RAW.ps1":
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationResult/10-ForeachLoopToRetryFailedExtracts.jpg)
-
-### The extracted data is 'blended' then exported
-
-The code in "RotateBitlockerKeys-Parallel-RAW.ps1" will test for the retries based on the count of objects in the array for the retries. If this array is empty, the script will export the extracted data as is. If there count in the retried array is more than zero, the script will 'blend' the arrays (the successful extract array, and the retried extract array), then spit out a report.
-
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationRequest/11-GenerateandExportReport.jpg)
-
-The code in "Get-DeviceActionData-KeyRotation-RAW.ps1" will simply add the two respective arrays together, then export the report as a .csv for the main reporting script to pick up and process further, check the script, the logic here is intense, it will transform the errors extracted from the MS Graph API into something that we all are able to understand and work with, without having to 'resolve' the error codes manually.
-
-Here is an example of the error transformation - Error "-2147023728" is "0x80070490" in the Endpoint manager console, which also means "Element not Found".
-
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerKeyRotationResult/11-GenerateReportAndDumpExtract.jpg)
+Leave the environment for a few days, then run the 'Get-DeviceActionData-KeyRotation-RAW.ps1' script to collect the report file needed for the key rotation data. Detailed [here](https://github.com/christopherbaxter/Intune-DeviceActionReporting-Bulk).
 
 # Ok, back from the Sidebar... Where were we?
 ### Oh yes, Blending the KeyRotation results from the above scripts, in order to include the Bitlocker key rotation result messages into the main report.
