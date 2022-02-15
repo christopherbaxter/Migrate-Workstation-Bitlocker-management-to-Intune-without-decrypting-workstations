@@ -407,7 +407,7 @@ Process {
     # Get Authentication token and Authentication Header
     #############################################################################################################################################
 
-    if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
+    #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
     try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
     catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop }
     if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
