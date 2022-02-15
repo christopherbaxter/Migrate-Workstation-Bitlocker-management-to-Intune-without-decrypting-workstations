@@ -9,7 +9,7 @@ I am sharing with you the working PowerShell code that allowed us to uncover som
 
 You will need a Service Principal in AzureAD with sufficient rights. I have a Service Principal that I use for multiple processes. I suggest following the guide from <https://msendpointmgr.com/2021/01/18/get-intune-managed-devices-without-an-escrowed-bitlocker-recovery-key-using-powershell/>. My permissions are set as in the image below. Please do not copy my permissions, this Service Principal is used for numerous tasks. I really should correct this, unfortunately, time has not been on my side, so I just work with what work for now. The reporting script "Get-IntuneManagedBitlockerKeyPresence-RAW.ps1" was built from the script referenced in the guide above.
 
-![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/ServicePrincipal%20-%20API%20Permissions.jpg)
+![](https://github.com/christopherbaxter/Workstation-Bitlocker-management-using-Intune/blob/main/Images/BitlockerReportScript/ServicePrincipal%20-%20API%20Permissions.jpg)
 
 I also elevate my AzureAD account to 'Intune Administrator', 'Cloud Device Administrator' and 'Security Reader'. These permissions also feel more than needed. Understand that I work in a very large environment, that is very fast paced, so I elevate these as I need them for other tasks as well.
 
