@@ -390,7 +390,7 @@ Process {
     # Get Auth token and create Authentication header
     #############################################################################################################################################
 
-    if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
+    #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
     Try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
     catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop }
     if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
@@ -565,7 +565,7 @@ Process {
     Foreach ($f in $FailedDevicelist) {
         # Get authentication token
         #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
-        Try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
+        try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
         catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop }
         if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
         $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
