@@ -214,3 +214,6 @@ Well, I will still upload a sample of the report, as well as a sample of the SCC
 I will also document and upload the scripts I created in order to get workstation logs from machines that are not accessible from the network. These scripts make use of Azure Blob storage, a script used to remediate a number of the errors we have been seeing, like 'Element not Found' and 'General Failure' in the Bitlocker key rotation logs. This script also replaces itself on the workstations every 10 days, the devices collect the new script from Azure Blob storage.
 
 There is much still to see here.
+
+Visitor Counter (Excuse the font, I have no idea what I'm doing)
+![Visitor Count](https://profile-counter.glitch.me/christopherbaxter/count.svg)
