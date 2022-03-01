@@ -453,8 +453,8 @@ Process {
     # Intune Managed Device Data Extraction
     #############################################################################################################################################
 
-    if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
-    $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop
+    try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
+    catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop }
     if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
     $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
 
@@ -473,8 +473,8 @@ Process {
     # Intune Encryption Reporting Data Extraction
     #############################################################################################################################################
 
-    if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
-    $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -ErrorAction Stop
+    try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
+    catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop }
     if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
     $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
 
@@ -494,8 +494,8 @@ Process {
     # Bitlocker Key Escrow Data Extraction
     #############################################################################################################################################
 
-    if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
-    $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -ErrorAction Stop
+    try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
+    catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop }
     if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
     $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
 
@@ -557,7 +557,7 @@ Process {
     Write-Host "Extracting AD OnPrem computer account Data - Expected Runtime is 3 Minutes - Start Time: $(Get-Date -Format 'yyyy-MM-dd HH:mm')" -ForegroundColor Green
 
     foreach ( $DomainTarget in $DomainTargets ) {
-    
+
         [string]$ServerTarget = (Get-ADDomainController -Discover -DomainName $DomainTarget).HostName
        
         $OPDisplay = ( $OPADProcessed / $OPADCount ).tostring("P")
